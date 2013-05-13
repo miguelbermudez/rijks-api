@@ -1,0 +1,5 @@
+development:
+  database: rijks
+  collection: works
+  host: localhost
+  mongoport: 27017
