@@ -3,3 +3,4 @@ development:
   collection: works
   host: localhost
   mongoport: 27017
+  imagecache: image-cache

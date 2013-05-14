@@ -96,14 +96,14 @@ class RijksApi < Sinatra::Base
     tempImageFile = Tempfile.new([filename, ".jpeg"])
 
     #save full image
-    full_image_filename = File.join("image-cache", "#{filename}-full.jpeg")
+    full_image_filename = File.join(settings.imagecache, "#{filename}-full.jpeg")
     image.write(full_image_filename)
 
     #scale and reduce image
     image.combine_options do |command|
       command.filter("box")
       command.resize(dimensions)
-      command.quality '75'
+      command.quality '60'
     end
 
     #write templfile
@@ -113,8 +113,8 @@ class RijksApi < Sinatra::Base
 
     #move tempfile to image-cache dir
     FileUtils.mv(tempImageFile.path, "image-cache/#{filename}.jpeg", :verbose => true)
-
     send_file(image.path, :type => "image/jpeg", :disposition => "inline")
+    puts "\n\n"
   end
 
   get '/image' do
@@ -122,16 +122,17 @@ class RijksApi < Sinatra::Base
     image_id = params[:id]
     is_full_image_req = params[:full]
     if is_full_image_req
-      cache_image_filename = File.join("image-cache", "#{image_id}-full.jpeg")
+      cache_image_filename = File.join(settings.imagecache, "#{image_id}-full.jpeg")
     else
-      cache_image_filename = File.join("image-cache", "#{image_id}.jpeg")
+      cache_image_filename = File.join(settings.imagecache, "#{image_id}.jpeg")
     end
 
     if File.exist?(cache_image_filename)
       send_file(cache_image_filename, :type => "image/jpeg", :disposition => "inline")
+      puts "\n\n"
     else
       redirect_url = "/resize/1000x2000?url=https://www.rijksmuseum.nl/assetimage2.jsp?id=#{image_id}"
-      puts "image_id: #{image_id}, redirect_url: #{redirect_url}"
+      puts "\timage_id: #{image_id}, \tredirect_url: #{redirect_url}"
       redirect redirect_url
     end
   end
