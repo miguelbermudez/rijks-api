@@ -5,6 +5,7 @@ require 'rack/contrib/jsonp'
 require 'sinatra/config_file'
 require 'mini_magick'
 require 'cgi'
+require 'fileutils'
 
 include Mongo
 
@@ -80,18 +81,57 @@ class RijksApi < Sinatra::Base
 
   get '/resize/:dimensions' do
     headers['Cache-Control'] = 'max-age=31536000'
-    dimensions = params[:dimensions]
+    dimensions = sanitize_dimensions(params[:dimensions])
     url = params[:url]
     puts params.inspect
+    uri = URI::parse(url)
+    filename = uri.query.downcase.match(/=(.+)$/i)[1]
 
-    dimensions = sanitize_dimensions(dimensions)
+    #get original image url
     image = MiniMagick::Image.open(url)
+
+    #create tempfile
+    tempImageFile = Tempfile.new([filename, ".jpeg"])
+
+    #save full image
+    full_image_filename = File.join("image-cache", "#{filename}-full.jpeg")
+    image.write(full_image_filename)
+
+    #scale and reduce image
     image.combine_options do |command|
       command.filter("box")
       command.resize(dimensions)
       command.quality '75'
     end
+
+    #write templfile
+    image.write(tempImageFile.path)
+    tempImageFile.close
+    puts "tempfile path: #{tempImageFile.path}"
+
+    #move tempfile to image-cache dir
+    FileUtils.mv(tempImageFile.path, "image-cache/#{filename}.jpeg", :verbose => true)
+
     send_file(image.path, :type => "image/jpeg", :disposition => "inline")
+  end
+
+  get '/image' do
+    headers['Cache-Control'] = 'max-age=31536000'
+    image_id = params[:id]
+    is_full_image_req = params[:full]
+    if is_full_image_req
+      cache_image_filename = File.join("image-cache", "#{image_id}-full.jpeg")
+    else
+      cache_image_filename = File.join("image-cache", "#{image_id}.jpeg")
+    end
+
+    if File.exist?(cache_image_filename)
+      send_file(cache_image_filename, :type => "image/jpeg", :disposition => "inline")
+    else
+      redirect_url = "/resize/1000x2000?url=https://www.rijksmuseum.nl/assetimage2.jsp?id=#{image_id}"
+      puts "image_id: #{image_id}, redirect_url: #{redirect_url}"
+      redirect redirect_url
+    end
   end
 
   protected
@@ -103,19 +143,6 @@ class RijksApi < Sinatra::Base
   def sanitize_url(url)
     url.gsub(%r{^https?://}, '').split('/').map {|u| CGI.escape(u) }.join('/')
   end
-
-
-
-  #helpers do
-  #  def object_id val
-  #    BSON::ObjectId.from_string(val)
-  #  end
-  #
-  #  def document_by_id id
-  #    id = object_id(id) if String === id
-  #    settings.mongo_coll.find_one({_id: id}).to_json
-  #  end
-  #end
 
   # start the server if ruby file executed directly
   run! if app_file == $0
