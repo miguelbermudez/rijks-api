@@ -1,5 +1,6 @@
-require 'sinatra/base'
 require 'mongo'
+require 'sinatra/base'
+require 'sinatra/synchrony'
 require 'json/ext'
 require 'rack/contrib/jsonp'
 require 'sinatra/config_file'
@@ -10,9 +11,10 @@ require 'fileutils'
 include Mongo
 
 class RijksApi < Sinatra::Base
-
-  use Rack::JSONP
+  register Sinatra::Synchrony
   register Sinatra::ConfigFile
+  use Rack::JSONP
+
   config_file 'config.yml'
   set :environment, :development
 
