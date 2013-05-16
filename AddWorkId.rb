@@ -2,6 +2,7 @@ require 'mongo'
 require 'json/ext'
 require 'yaml'
 require 'awesome_print'
+require 'uri'
 
 include Mongo
 
@@ -13,7 +14,7 @@ db = conn.db(settings['database'])
 coll =  db[settings['collection']]
 
 #find all paintings
-docs = coll.find({type: 'schilderij'}).limit(1)   # n.3281
+docs = coll.find({type: 'schilderij'})   # n.3281
 
 #get the first formats entry
 docs.each_with_index do |doc|
