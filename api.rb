@@ -53,6 +53,12 @@ class RijksApi < Sinatra::Base
     docs.each.to_a.to_json
   end
 
+  get '/painting/:id' do
+    id = params['id']
+    work = settings.mongo_coll.find({work_id: id })
+    work.to_a.to_json
+  end
+
   get '/paintings/image/' do
     images = []
     skip = ( params[:skip] || "0" ).to_i
