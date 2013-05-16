@@ -1,6 +1,6 @@
 development:
   database: rijks
-  collection: works
+  collection: paintings
   host: localhost
   mongoport: 27017
   imagecache: image-cache
