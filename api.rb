@@ -124,8 +124,6 @@ class RijksApi < Sinatra::Base
   end
 
   get '/image' do
-
-  end
     headers['Cache-Control'] = 'max-age=31536000'
     image_id = params[:id]
     is_full_image_req = params[:full]
