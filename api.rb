@@ -1,6 +1,6 @@
 require 'mongo'
 require 'sinatra/base'
-require 'sinatra/synchrony'
+#require 'sinatra/synchrony'
 require 'json/ext'
 require 'rack/contrib/jsonp'
 require 'sinatra/config_file'
@@ -11,7 +11,7 @@ require 'fileutils'
 include Mongo
 
 class RijksApi < Sinatra::Base
-  register Sinatra::Synchrony
+  #register Sinatra::Synchrony
   register Sinatra::ConfigFile
   use Rack::JSONP
 
@@ -124,6 +124,8 @@ class RijksApi < Sinatra::Base
   end
 
   get '/image' do
+
+  end
     headers['Cache-Control'] = 'max-age=31536000'
     image_id = params[:id]
     is_full_image_req = params[:full]
